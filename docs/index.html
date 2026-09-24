@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Machine Learning Based Content Decline Detection</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.7;
+    margin: 0;
+    background: #f5f7fb;
+    color: #222;
+}
+
+.container {
+    max-width: 1000px;
+    margin: auto;
+    background: white;
+    padding: 50px;
+}
+
+h1 {
+    font-size: 38px;
+    margin-bottom: 10px;
+}
+
+h2 {
+    margin-top: 45px;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 8px;
+}
+
+h3 {
+    margin-top: 30px;
+}
+
+.subtitle {
+    color: #666;
+    font-size: 18px;
+}
+
+.abstract {
+    background: #f0f4ff;
+    padding: 25px;
+    border-left: 5px solid #315efb;
+    margin: 25px 0;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: center;
+}
+
+th {
+    background: #f1f3f5;
+}
+
+.highlight {
+    background: #eef8f0;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+code {
+    background: #f1f1f1;
+    padding: 3px 6px;
+    border-radius: 4px;
+}
+
+footer {
+    margin-top: 50px;
+    padding-top: 20px;
+    border-top: 1px solid #ddd;
+    color: #666;
+}
+
+@media(max-width:700px) {
+    .container {
+        padding: 25px;
+    }
+
+    h1 {
+        font-size: 28px;
+    }
+
+    table {
+        font-size: 13px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>
+Machine Learning Based Content Decline Detection for Search Refresh Prioritization
+</h1>
+
+<p class="subtitle">
+FlyRank ML Internship Capstone
+</p>
+
+<div class="abstract">
+
+<h2>Abstract</h2>
+
+<p>
+This study investigates whether machine learning can identify content pages associated with declining performance and help prioritize pages for search-content review. Using the public FlyRank internship starter dataset, the study compares Logistic Regression and Random Forest models after removing identifier and leakage-risk product flag features. The models classify pages using the <code>is_declining</code> label and generate an opportunity score that is used to rank pages for potential refresh review. On the held-out test set, Logistic Regression achieved 92.87% accuracy and an F1 score of 0.8320, while Random Forest achieved 87.63% accuracy and an F1 score of 0.7448. Both models achieved Precision@50 of 1.00 compared with 0.04 for the custom lowest-CTR baseline, showing strong ranking performance on this test split.
+</p>
+
+</div>
+
+<h2>1. Introduction / Problem Statement</h2>
+
+<p>
+Content performance changes over time, and organizations need practical ways to identify pages that may require review or updating. Manually reviewing a large collection of pages can be inefficient.
+</p>
+
+<p>
+This project investigates the following research question:
+</p>
+
+<div class="highlight">
+
+<strong>
+Can historical search and content-performance signals be used to identify pages associated with content decline and prioritize them for refresh review?
+</strong>
+
+</div>
+
+<p>
+The goal is not to claim that refreshing a page will necessarily improve its future performance. Instead, the model provides a data-driven prioritization mechanism for identifying pages that warrant further human review.
+</p>
+
+
+<h2>2. Data</h2>
+
+<p>
+The experiment uses the anonymized FlyRank internship starter dataset containing content-performance records.
+</p>
+
+<p>Important features used in the analysis include:</p>
+
+<ul>
+<li>Search volume</li>
+<li>Competition</li>
+<li>Content type</li>
+<li>Main intent</li>
+<li>Word count</li>
+<li>Content age</li>
+<li>Impressions</li>
+<li>Clicks</li>
+<li>Sessions</li>
+<li>CTR</li>
+<li>Average position</li>
+<li>Engagement-related measurements</li>
+</ul>
+
+<p>
+The target variable was <code>is_declining</code>.
+</p>
+
+<p>
+Identifier columns such as <code>content_id</code> and <code>client_id</code> were excluded from modeling. Product-generated flags such as <code>health_score</code>, <code>is_quick_win</code>, <code>is_underperformer</code>, <code>needs_ctr_fix</code>, and <code>is_initial_refresh_candidate</code> were also excluded because they may introduce label leakage.
+</p>
+
+
+<h2>3. Methodology</h2>
+
+<p>
+The dataset was divided into 80% training data and 20% testing data using a stratified split with a random seed of 42.
+</p>
+
+<h3>Logistic Regression</h3>
+
+<p>
+Logistic Regression was used as a relatively simple classification model for predicting whether a content record belonged to the declining class.
+</p>
+
+<h3>Random Forest</h3>
+
+<p>
+Random Forest was used to capture nonlinear relationships between content-performance features and the decline label.
+</p>
+
+<p>
+Numerical features were median-imputed and standardized. Categorical features were imputed using the most frequent value and one-hot encoded.
+</p>
+
+<p>
+The predicted probability of decline was used as the opportunity score. Pages were sorted by this score to create a ranked list.
+</p>
+
+<p>
+The primary ranking metric was Precision@50:
+</p>
+
+<div class="highlight">
+
+<strong>
+Precision@50 = declining pages among the top 50 ranked pages / 50
+</strong>
+
+</div>
+
+<p>
+A simple baseline was also created by ranking pages according to lowest CTR.
+</p>
+
+
+<h2>4. Results</h2>
+
+<table>
+
+<tr>
+<th>Model</th>
+<th>Accuracy</th>
+<th>Precision</th>
+<th>Recall</th>
+<th>F1 Score</th>
+<th>Precision@50</th>
+</tr>
+
+<tr>
+<td>Lowest-CTR Baseline</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td><strong>0.04</strong></td>
+</tr>
+
+<tr>
+<td>Logistic Regression</td>
+<td>0.9287</td>
+<td>0.7387</td>
+<td>0.9524</td>
+<td>0.8320</td>
+<td><strong>1.00</strong></td>
+</tr>
+
+<tr>
+<td>Random Forest</td>
+<td>0.8763</td>
+<td>0.6033</td>
+<td>0.9730</td>
+<td>0.7448</td>
+<td><strong>1.00</strong></td>
+</tr>
+
+</table>
+
+<p>
+The custom lowest-CTR baseline identified 2 declining pages within its top 50, resulting in Precision@50 of 0.04.
+</p>
+
+<p>
+Both machine-learning models identified 50 declining pages among their respective top 50 predictions on this held-out test split.
+</p>
+
+<p>
+The Random Forest feature-importance analysis identified historical impression volume, click activity, CTR, session activity, and content age among the influential predictive features.
+</p>
+
+<p>
+These feature-importance results represent predictive associations and should not be interpreted as causal relationships.
+</p>
+
+
+<h2>5. Ranked Recommendations</h2>
+
+<p>
+The model generates a ranked list using predicted probability of decline.
+</p>
+
+<table>
+
+<tr>
+<th>Rank</th>
+<th>Suggested Action</th>
+</tr>
+
+<tr>
+<td>1–10</td>
+<td>Priority Refresh Review</td>
+</tr>
+
+<tr>
+<td>11–50</td>
+<td>Review / Refresh</td>
+</tr>
+
+<tr>
+<td>51+</td>
+<td>Monitor</td>
+</tr>
+
+</table>
+
+<p>
+These categories are operational recommendations for this project. They do not imply that every page in a category will benefit from the same action.
+</p>
+
+
+<h2>6. Feature Importance</h2>
+
+<p>
+The Random Forest model highlighted several historical performance variables as influential predictors. The most prominent features included previous 30-day impressions, 90-day impressions, last 30-day impressions, days with impressions, impression tier, CTR, clicks, sessions, pageviews, and content age.
+</p>
+
+<p>
+The feature importance analysis is intended to improve interpretation of the model and does not establish that changing any individual feature would cause content performance to improve.
+</p>
+
+
+<h2>7. Limitations</h2>
+
+<ul>
+
+<li>
+The evaluation is based on a single train-test split of the FlyRank internship starter dataset.
+</li>
+
+<li>
+The target variable represents observed content decline and does not measure whether a subsequent refresh would improve performance.
+</li>
+
+<li>
+The high Precision@50 observed on this split may not generalize to unseen datasets or future time periods.
+</li>
+
+<li>
+Temporal validation would provide a stronger test of real-world deployment performance.
+</li>
+
+<li>
+Feature importance indicates predictive association rather than causation.
+</li>
+
+</ul>
+
+
+<h2>8. Reproducibility</h2>
+
+<p>
+The experiment was implemented in Python using pandas, NumPy, scikit-learn, and Matplotlib.
+</p>
+
+<p>
+A fixed random seed of 42 was used for the train-test split and model training. The preprocessing pipeline, classification models, evaluation metrics, ranking procedure, and recommendation generation are contained in the accompanying notebook.
+</p>
+
+
+<h2>9. Conclusion</h2>
+
+<p>
+This study demonstrates a machine-learning approach for prioritizing content associated with performance decline. Logistic Regression achieved 92.87% accuracy and an F1 score of 0.8320, while Random Forest achieved 87.63% accuracy and an F1 score of 0.7448. Both models achieved Precision@50 of 1.00 on the evaluated test split, compared with 0.04 for the custom lowest-CTR baseline.
+</p>
+
+<p>
+The resulting opportunity score can therefore be used as a prioritization signal for human review. Further evaluation using temporal validation and future-period data would be necessary before treating the approach as a production decision system.
+</p>
+
+
+<h2>10. Acknowledgements / Data Credit</h2>
+
+<p>
+Built on the
+<a href="https://flyrank.ai" target="_blank">FlyRank ML Internship dataset</a>.
+</p>
+
+
+<footer>
+
+<p>
+<strong>FlyRank ML Internship Capstone</strong>
+</p>
+
+<p>
+Machine Learning Based Content Decline Detection for Search Refresh Prioritization
+</p>
+
+</footer>
+
+</div>
+
+</body>
+</html>
